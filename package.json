@@ -1,0 +1,16 @@
+{
+  "name": "npm-global-trend",
+  "version": "1.0.0",
+  "description": "See how npm registry downloads have changed over time",
+  "main": "lib/index.js",
+  "bin": {
+    "npm-trend": "./cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["npm", "downloads", "trend", "statistics"],
+  "author": "Jon Church",
+  "license": "ISC",
+  "type": "commonjs"
+}
