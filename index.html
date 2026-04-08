@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>npm Registry Download Trends</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
+    .controls {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    button {
+      background: #1a1a1a;
+      color: #e0e0e0;
+      border: 1px solid #333;
+      padding: 0.4rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    button:hover { border-color: #555; }
+    button.active { background: #cb3837; border-color: #cb3837; color: #fff; }
+    .chart-container {
+      position: relative;
+      background: #111;
+      border-radius: 8px;
+      padding: 1.5rem;
+      border: 1px solid #222;
+    }
+    .loading {
+      text-align: center;
+      padding: 4rem;
+      color: #888;
+    }
+    .stats {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .stat {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 600; color: #fff; }
+    .stat-label { font-size: 0.8rem; color: #888; margin-top: 0.25rem; }
+  </style>
+</head>
+<body>
+  <h1>npm Registry Download Trends</h1>
+  <p class="subtitle">Total downloads across all packages on the npm registry</p>
+
+  <div class="controls">
+    <button data-months="6">6 months</button>
+    <button data-months="12" class="active">1 year</button>
+    <button data-months="18">18 months</button>
+    <button data-months="36">3 years</button>
+    <button data-months="60">5 years</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="chart-container">
+    <div class="loading" id="loading">Loading data...</div>
+    <canvas id="chart" style="display:none"></canvas>
+  </div>
+
+  <script>
+    const API = 'https://api.npmjs.org/downloads/range';
+    const MAX_DAYS = 545;
+
+    function addDays(dateStr, n) {
+      const d = new Date(dateStr + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + n);
+      return d.toISOString().slice(0, 10);
+    }
+
+    function monthsAgo(n) {
+      const d = new Date();
+      d.setUTCMonth(d.getUTCMonth() - n, 1);
+      return d.toISOString().slice(0, 10);
+    }
+
+    async function fetchRange(from, to) {
+      const res = await fetch(`${API}/${from}:${to}`);
+      if (!res.ok) throw new Error(`API error: ${res.status}`);
+      const data = await res.json();
+      return data.downloads;
+    }
+
+    async function getDownloads(from, to) {
+      to = to || new Date().toISOString().slice(0, 10);
+      const chunks = [];
+      let cursor = from;
+      while (cursor <= to) {
+        const end = addDays(cursor, MAX_DAYS - 1);
+        const clampedEnd = end < to ? end : to;
+        chunks.push({ from: cursor, to: clampedEnd });
+        cursor = addDays(clampedEnd, 1);
+      }
+      const results = await Promise.all(chunks.map(c => fetchRange(c.from, c.to)));
+      return results.flat();
+    }
+
+    function bucketByMonth(days) {
+      const map = new Map();
+      for (const { day, downloads } of days) {
+        const key = day.slice(0, 7);
+        map.set(key, (map.get(key) || 0) + downloads);
+      }
+      return Array.from(map, ([label, downloads]) => ({ label, downloads }));
+    }
+
+    function formatB(n) {
+      if (n >= 1e12) return (n / 1e12).toFixed(1) + 'T';
+      if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+      return n.toLocaleString();
+    }
+
+    const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    function formatMonth(label) {
+      const [y, m] = label.split('-');
+      return MONTHS[parseInt(m, 10) - 1] + ' ' + y;
+    }
+
+    let chart = null;
+
+    function renderChart(buckets) {
+      const today = new Date();
+      const currentMonth = today.toISOString().slice(0, 7);
+      if (buckets.length && buckets[buckets.length - 1].label === currentMonth && today.getDate() < 28) {
+        buckets = buckets.slice(0, -1);
+      }
+
+      const labels = buckets.map(b => formatMonth(b.label));
+      const data = buckets.map(b => b.downloads);
+
+      const canvas = document.getElementById('chart');
+      const loading = document.getElementById('loading');
+      loading.style.display = 'none';
+      canvas.style.display = 'block';
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Monthly Downloads',
+            data,
+            borderColor: '#cb3837',
+            backgroundColor: 'rgba(203, 56, 55, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          interaction: { intersect: false, mode: 'index' },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => formatB(ctx.raw) + ' downloads'
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#888', maxRotation: 45 },
+              grid: { color: '#1a1a1a' }
+            },
+            y: {
+              ticks: {
+                color: '#888',
+                callback: (v) => formatB(v)
+              },
+              grid: { color: '#1a1a1a' }
+            }
+          }
+        }
+      });
+
+      const total = data.reduce((s, v) => s + v, 0);
+      const first = data[0];
+      const last = data[data.length - 1];
+      const growthNum = (last - first) / first * 100;
+      const growth = growthNum.toFixed(1);
+      const peak = Math.max(...data);
+      const peakMonth = labels[data.indexOf(peak)];
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat">
+          <div class="stat-value">${formatB(total)}</div>
+          <div class="stat-label">Total downloads</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${growthNum >= 0 ? '+' : ''}${growth}%</div>
+          <div class="stat-label">First to last month</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${formatB(peak)}</div>
+          <div class="stat-label">Peak month (${peakMonth})</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${formatB(last)}</div>
+          <div class="stat-label">Latest full month</div>
+        </div>
+      `;
+    }
+
+    let loadId = 0;
+
+    async function load(months) {
+      const id = ++loadId;
+      const loading = document.getElementById('loading');
+      const canvas = document.getElementById('chart');
+      loading.style.display = 'block';
+      loading.textContent = 'Loading data...';
+      canvas.style.display = 'none';
+
+      try {
+        const from = monthsAgo(months);
+        const days = await getDownloads(from);
+        if (id !== loadId) return;
+        const buckets = bucketByMonth(days);
+        renderChart(buckets);
+      } catch (err) {
+        if (id !== loadId) return;
+        loading.textContent = 'Error loading data: ' + err.message;
+      }
+    }
+
+    const buttons = document.querySelectorAll('.controls button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        load(parseInt(btn.dataset.months, 10));
+      });
+    });
+
+    load(12);
+  </script>
+</body>
+</html>
