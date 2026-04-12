@@ -33,6 +33,10 @@ function printTable(buckets, label) {
   console.log(`\n  Total: ${formatNumber(total)}`);
 }
 
+// TODO: snap to the 1st of the month (pass `1` as the third arg to setMonth)
+// so `--months N` doesn't produce a partial leading bucket and an inflated
+// MoM% on the second month. Also cap `to` at the last day of the previous
+// month to drop the trailing partial. See index.html:load() for the same fix.
 function monthsAgo(n) {
   const d = new Date();
   d.setMonth(d.getMonth() - n);
