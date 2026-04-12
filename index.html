@@ -157,12 +157,6 @@
     let chart = null;
 
     function renderChart(buckets) {
-      const today = new Date();
-      const currentMonth = today.toISOString().slice(0, 7);
-      if (buckets.length && buckets[buckets.length - 1].label === currentMonth && today.getDate() < 28) {
-        buckets = buckets.slice(0, -1);
-      }
-
       const labels = buckets.map(b => formatMonth(b.label));
       const data = buckets.map(b => b.downloads);
 
@@ -274,7 +268,11 @@
 
       try {
         const from = monthsAgo(months);
-        const days = await getDownloads(from);
+        // Cap `to` at the last day of the previous month so every bucket is a full month.
+        const now = new Date();
+        const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0))
+          .toISOString().slice(0, 10);
+        const days = await getDownloads(from, to);
         if (id !== loadId) return;
         const buckets = bucketByMonth(days);
         renderChart(buckets);
