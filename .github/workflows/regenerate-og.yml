@@ -1,0 +1,37 @@
+name: Regenerate OG image
+
+on:
+  schedule:
+    # 06:00 UTC on the 2nd of each month (after prior month's data firms up).
+    - cron: '0 6 2 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run og
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet docs/og.png; then
+            echo "No changes to docs/og.png, skipping commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/og.png
+          git commit -m "chore: regenerate OG image"
+          git push
