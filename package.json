@@ -7,10 +7,19 @@
     "npm-trend": "./cli.js"
   },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "og": "node scripts/generate-og.js"
   },
-  "keywords": ["npm", "downloads", "trend", "statistics"],
+  "keywords": [
+    "npm",
+    "downloads",
+    "trend",
+    "statistics"
+  ],
   "author": "Jon Church",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  }
 }
