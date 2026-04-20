@@ -8,7 +8,8 @@ const { getDownloads, bucketBy } = require('../lib/index.js');
 const WIDTH = 1200;
 const HEIGHT = 630;
 const MONTHS_BACK = 12;
-const FONT_FAMILY = 'Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+// Pinned so local and CI render match. Mac: `brew install --cask font-dejavu`.
+const FONT_FAMILY = "'DejaVu Sans', sans-serif";
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
