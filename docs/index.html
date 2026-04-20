@@ -56,6 +56,8 @@
       border-radius: 8px;
       padding: 1.5rem;
       border: 1px solid #222;
+      height: 55vh;
+      min-height: 380px;
     }
     .loading {
       text-align: center;
@@ -198,6 +200,7 @@
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
           interaction: { intersect: false, mode: 'index' },
           plugins: {
             legend: { display: false },
@@ -215,7 +218,7 @@
           },
           scales: {
             x: {
-              ticks: { color: '#888', maxRotation: 45 },
+              ticks: { color: '#888', maxRotation: 45, maxTicksLimit: 8, autoSkipPadding: 20 },
               grid: { color: '#1a1a1a' }
             },
             y: {
