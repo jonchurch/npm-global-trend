@@ -161,7 +161,7 @@ async function main() {
   });
   const png = resvg.render().asPng();
 
-  const outPath = path.resolve(__dirname, '../og.png');
+  const outPath = path.resolve(__dirname, '../docs/og.png');
   fs.writeFileSync(outPath, png);
   console.log(`Wrote ${outPath} (${(png.length / 1024).toFixed(1)} KB)`);
 }
