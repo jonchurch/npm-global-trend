@@ -124,16 +124,15 @@ function buildSvg(buckets) {
     const x = 50 + i * 360;
     return `
       <text x="${x}" y="${statsY}" fill="#ffffff" font-size="42" font-weight="700">${s.value}</text>
-      <text x="${x}" y="${statsY + 22}" fill="#888" font-size="13" font-weight="600" letter-spacing="1">${s.label}</text>
+      <text x="${x}" y="${statsY + 32}" fill="#aaa" font-size="22" font-weight="600" letter-spacing="1">${s.label}</text>
     `;
   }).join('');
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}" font-family="${FONT_FAMILY}">
     <rect width="${WIDTH}" height="${HEIGHT}" fill="#0a0a0a"/>
 
-    <text x="50" y="90" fill="#ffffff" font-size="52" font-weight="700" letter-spacing="-1">Registry Download Trends</text>
-    <text x="50" y="125" fill="#888" font-size="20">Monthly downloads across all npm packages</text>
-    <text x="${WIDTH - 50}" y="90" fill="#cb3837" font-size="44" font-weight="800" text-anchor="end" letter-spacing="-1">npm</text>
+    <text x="50" y="90" fill="#ffffff" font-size="52" font-weight="700" letter-spacing="-1">Global <tspan fill="#cb3837">npm</tspan> Registry Download Trend</text>
+    <text x="50" y="125" fill="#888" font-size="20">Monthly downloads across all packages on the npm registry</text>
 
     ${statBlocks}
 
