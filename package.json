@@ -1,11 +1,9 @@
 {
   "name": "npm-global-trend",
   "version": "1.0.0",
-  "description": "See how npm registry downloads have changed over time",
+  "description": "Live chart of total downloads across all packages on the npm registry",
   "main": "lib/index.js",
-  "bin": {
-    "npm-trend": "./cli.js"
-  },
+  "private": true,
   "scripts": {
     "test": "node --test test/*.test.js",
     "og": "node scripts/generate-og.js"
