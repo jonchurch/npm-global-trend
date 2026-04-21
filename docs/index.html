@@ -28,8 +28,11 @@
       padding: 2rem;
       max-width: 1200px;
       margin: 0 auto;
+      overflow-x: hidden;
     }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    @media (max-width: 600px) { body { padding: 1rem; } }
+    h1 { font-size: 1.75rem; margin-bottom: 0.25rem; letter-spacing: -0.01em; line-height: 1.15; }
+    @media (min-width: 700px) { h1 { font-size: 2.5rem; } }
     .subtitle { color: #888; margin-bottom: 1.5rem; font-size: 0.9rem; }
     .subtitle a { color: #aaa; text-decoration: none; }
     .subtitle a:hover { color: #e0e0e0; }
@@ -85,18 +88,27 @@
       border-radius: 4px;
       color: transparent;
     }
+    footer {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #222;
+      color: #666;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    footer a { color: #888; text-decoration: none; }
+    footer a:hover { color: #e0e0e0; }
   </style>
 </head>
 <body>
   <h1>npm Registry Download Trends</h1>
-  <p class="subtitle">Total downloads across all packages on the npm registry · <a href="https://github.com/jonchurch/npm-global-trend">GitHub</a></p>
+  <p class="subtitle">Total downloads across all packages on the npm registry</p>
 
   <div class="controls">
-    <button data-months="6">6 months</button>
-    <button data-months="12">1 year</button>
-    <button data-months="18">18 months</button>
-    <button data-months="36">3 years</button>
-    <button data-months="60" class="active">5 years</button>
+    <button data-months="6">6M</button>
+    <button data-months="12">1Y</button>
+    <button data-months="36">3Y</button>
+    <button data-months="60" class="active">5Y</button>
   </div>
 
   <div class="stats" id="stats">
@@ -110,6 +122,11 @@
     <div class="loading" id="loading">Loading data...</div>
     <canvas id="chart" style="display:none"></canvas>
   </div>
+
+  <footer>
+    Data from the <a href="https://github.com/npm/registry/blob/main/docs/download-counts.md">npm downloads API</a> ·
+    <a href="https://github.com/jonchurch/npm-global-trend">Source on GitHub</a>
+  </footer>
 
   <script>
     const API = 'https://api.npmjs.org/downloads/range';
@@ -195,7 +212,7 @@
             backgroundColor: 'rgba(203, 56, 55, 0.1)',
             fill: true,
             tension: 0.3,
-            pointRadius: 3,
+            pointRadius: 0,
             pointHoverRadius: 6,
           }]
         },
